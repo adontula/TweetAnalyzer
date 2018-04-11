@@ -20,18 +20,21 @@ def tweetSearch( handle, opt ):
         for tweet in ts.search_tweets_iterable(tuo):
             analyze(db, tweet['text'], hashes, opt);
 
-    except TwitterSearch as e:
-        print(e)
-    if(opt == 0):
-        return db;
-    else:
-        return hashes;
+        if(opt == 0):
+            print "Top 10 Words:"
+            return db;
+        else:
+            print "Top 10 Hashtags:"
+            return hashes;
+    except TwitterSearchException:
+        print("The given handle was not found.")
+        return {}
 
 def analyze( db, text, hashes, opt ):
     textArr = text.split()
 
     #if user asking for list of 10 most common words
-    if(opt == 0):
+    if (opt == 0):
         stops = set(stopwords.words('english'))
         punctuations = set(string.punctuation)
         for text in textArr:
@@ -42,7 +45,7 @@ def analyze( db, text, hashes, opt ):
                 else:
                     db[text] += 1;
     #if user asking for list of 10 most common hashtags
-    elif(opt == 1):
+    elif (opt == 1):
         for text in textArr:
             text = text.encode('utf-8')
             if(text[0] == '#'):
@@ -57,14 +60,38 @@ def list_values(handle, opt):
     db = tweetSearch(handle, opt)
     #since db is not sorted, need to sort by value
     sorted_db = sorted(db, key=lambda x: db[x], reverse=True)
-
     count = 0
     for k in sorted_db:
         if(count < 10):
             print "{}       {}".format(k, db[k])
             count += 1
         else:
+            print
             break
 
-list_values("mcuban", 0)
-list_values("mcuban", 1)
+#asks the user to enter in the person
+def userInput():
+    while True:
+        handle = raw_input('Enter Twitter handle: ')
+        if len(handle) == 0:
+            print "Please enter a real handle."
+        else:
+            break
+    while True:
+        try:
+            opt = int(raw_input('Would you like to see words (0), hashtags (1), or both (2)?\n'))
+            if opt <= 2 and opt >= 0:
+                if opt == 2:
+                    list_values(handle, 0)
+                    list_values(handle, 1)
+                elif choice == 1:
+                    list_values(handle, 1)
+                elif choice == 0:
+                    list_values(handle, 0)
+                break
+            else:
+                print "Invalid input. Please try again."
+        except ValueError:
+            print "Invalid input. Please try again."
+
+userInput()
